@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #060a14;
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --danger: #f43f5e;
+            --success: #10b981;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .system-status {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: rgba(56, 189, 248, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .card h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .card:hover .badge {
+            color: var(--accent);
+        }
+
+        /* Cores especiais para certas ações */
+        .card.danger:hover {
+            border-color: var(--danger);
+            box-shadow: 0 10px 30px rgba(244, 63, 94, 0.2);
+        }
+        .card.danger:hover .icon-box { background: rgba(244, 63, 94, 0.1); color: var(--danger); border-color: rgba(244, 63, 94, 0.2); }
+        .card.danger:hover::before { background: linear-gradient(90deg, transparent, var(--danger), transparent); }
+
+        /* Estilo para o Acesso Principal */
+        .card.primary-access {
+            background: linear-gradient(145deg, rgba(56, 189, 248, 0.15), rgba(15, 23, 42, 0.8));
+            border-color: rgba(56, 189, 248, 0.4);
+            grid-column: span 1;
+        }
+        .card.primary-access:hover {
+            background: linear-gradient(145deg, rgba(56, 189, 248, 0.25), rgba(15, 23, 42, 0.9));
+            border-color: var(--accent);
+        }
+        .card.primary-access .icon-box {
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="brand">
+                <h1>Painel de Controle</h1>
+                <p>Centro de Comando JUVIKS</p>
+            </div>
+            <div class="system-status">
+                <div class="status-pill">
+                    <div class="pulse"></div>
+                    Sistema Ativo
+                </div>
+                <div class="status-pill">
+                    Porta: {{PORTA}}
+                </div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- ACESSAR SISTEMA (PRINCIPAL) -->
+            <a href="/" target="_parent" class="card primary-access">
+                <div class="badge">Acesso Direto</div>
+                <div class="icon-box">🚀</div>
+                <h3>ACESSAR SISTEMA ERP</h3>
+                <p>Entrar no sistema principal para realizar vendas, orçamentos e financeiro.</p>
+            </a>
+
+            <!-- REINICIAR -->
+            <a href="?action=restart" class="card">
+                <div class="badge">Motor</div>
+                <div class="icon-box">🔁</div>
+                <h3>Reiniciar Motor</h3>
+                <p>Atualiza todos os parâmetros e reinicia o launcher do sistema.</p>
+            </a>
+
+            <!-- PARAR TUDO -->
+            <a href="?action=stop" class="card danger">
+                <div class="badge">Crítico</div>
+                <div class="icon-box">🛑</div>
+                <h3>Parar Processos</h3>
+                <p>Encerra todos os processos Python, Streamlit e Ngrok ativos.</p>
+            </a>
+
+            <!-- NGROK -->
+            <a href="?action=ngrok" class="card">
+                <div class="badge">Rede</div>
+                <div class="icon-box">🌐</div>
+                <h3>Acesso Online</h3>
+                <p>Configura o Ngrok para permitir acesso de qualquer lugar da internet.</p>
+            </a>
+
+            <!-- EXECUTÁVEL -->
+            <a href="?action=compile" class="card">
+                <div class="badge">Build</div>
+                <div class="icon-box">📦</div>
+                <h3>Compilar Sistema</h3>
+                <p>Gera o executável (.exe) otimizado para distribuição em outros PCs.</p>
+            </a>
+
+            <!-- EDITOR DE TEMAS -->
+            <a href="?action=theme" class="card">
+                <div class="badge">Design</div>
+                <div class="icon-box">🎨</div>
+                <h3>Personalizar Estilo</h3>
+                <p>Altere as cores, logotipos e toda a identidade visual do ERP.</p>
+            </a>
+
+            <!-- GERENCIADOR DE ACESSOS -->
+            <a href="?action=access" class="card">
+                <div class="badge">Segurança</div>
+                <div class="icon-box">🛡️</div>
+                <h3>Controle de Acessos</h3>
+                <p>Gerencie quem pode logar e em quais máquinas o sistema está autorizado.</p>
+            </a>
+
+            <!-- BACKUP -->
+            <a href="?action=backup" class="card">
+                <div class="badge">Dados</div>
+                <div class="icon-box">💾</div>
+                <h3>Backup Geral</h3>
+                <p>Realiza uma cópia completa do banco de dados e arquivos de configuração.</p>
+            </a>
+
+            <!-- LIMPAR CACHE -->
+            <a href="?action=clean" class="card">
+                <div class="badge">Manutenção</div>
+                <div class="icon-box">🧹</div>
+                <h3>Limpar Cache</h3>
+                <p>Remove arquivos temporários e otimiza a performance do motor Python.</p>
+            </a>
+
+            <!-- LOGS -->
+            <a href="?action=logs" class="card">
+                <div class="badge">Análise</div>
+                <div class="icon-box">📝</div>
+                <h3>Ver Logs</h3>
+                <p>Examina o histórico de erros e atividades registradas pelo servidor.</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Script para enviar comandos via URL (Bridge com Streamlit) -->
+    <script>
+        // Opção para feedback visual ao clicar
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Adiciona um efeito de loading se preferir
+                card.style.opacity = "0.6";
+                card.querySelector('p').innerText = "Executando comando...";
+            });
+        });
+    </script>
+</body>
+</html>

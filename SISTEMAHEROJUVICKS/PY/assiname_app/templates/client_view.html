@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ doc.original_filename }} | Assinatura Digital</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Fontes para Assinatura por Teclado -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Pacifico&family=Dancing+Script:wght@700&family=Mrs+Saint+Delafield&display=swap"
+        rel="stylesheet">
+    <style>
+        .guide-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-option {
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s;
+        }
+
+        .font-option.active {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .sig-font-1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 1.5rem;
+        }
+
+        .sig-font-2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+        }
+
+        .sig-font-3 {
+            font-family: 'Mrs Saint Delafield', cursive;
+            font-size: 2.2rem;
+        }
+
+        #textSigPreview {
+            width: 100%;
+            height: 150px;
+            background: white;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body style="display: block; overflow-y: auto;">
+    <!-- GUIA DE BOAS VINDAS -->
+    <div id="guideOverlay" class="guide-overlay">
+        <div class="glass-card" style="max-width: 450px; text-align: center;">
+            <h2 style="color: var(--primary); font-size: 2rem; margin-bottom: 1.5rem;">OLÁ! VAMOS ASSINAR?</h2>
+            <div style="text-align: left; margin-bottom: 2rem; line-height: 1.6;">
+                <p>1. 📄 **Revise** o documento no visualizador.</p>
+                <p>2. ✍️ **Escolha** como quer assinar (Desenhar, Subir foto ou Digitar seu nome).</p>
+                <p>3. 📍 **Autorize** sua localização (é obrigatório para validade jurídica).</p>
+                <p>4. ✅ **Clique** no botão verde para finalizar.</p>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 1rem;" onclick="closeGuide()">ENTENDI, VAMOS
+                LÁ!</button>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <div class="container" style="max-width: 800px;">
+            <header class="header">
+                <h1 style="font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem;">Documento para Assinatura</h1>
+                <p style="color: var(--text-muted); text-align: center;">{{ doc.original_filename }}</p>
+            </header>
+
+            {% if doc.status == 'pending' %}
+            <iframe src="{{ url_for('download_pdf', doc_id=doc.id) }}" class="pdf-frame"></iframe>
+
+            <div class="glass-card">
+                <h2
+                    style="margin-top:0; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    Área de Assinatura</h2>
+
+                <div style="margin-bottom: 2rem;">
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Como você deseja
+                        assinar este documento?</p>
+
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-outline" id="btnDraw" onclick="switchMethod('draw')"
+                            style="flex:1; padding: 0.6rem; font-size: 0.75rem; background: var(--primary);">DESENHAR</button>
+                        <button class="btn btn-outline" id="btnType" onclick="switchMethod('type')"
+                            style="flex:1; padding: 0.6rem; font-size: 0.75rem;">DIGITAR NOME</button>
+                        <button class="btn btn-outline" id="btnUpload" onclick="switchMethod('upload')"
+                            style="flex:1; padding: 0.6rem; font-size: 0.75rem;">SUBIR FOTO</button>
+                    </div>
+
+                    <!-- 1. Canva para Desenhar -->
+                    <div id="drawArea"
+                        style="background: white; border-radius: 0.5rem; border: 1px solid #ddd; height: 180px; position: relative;">
+                        <canvas id="sigCanvas" style="width: 100%; height: 100%; cursor: crosshair;"></canvas>
+                        <button onclick="clearCanvas()"
+                            style="position: absolute; top: 5px; right: 5px; font-size: 0.6rem; background: #eee; color: #333; padding: 3px 8px; border-radius: 4px;">LIMPAR</button>
+                    </div>
+
+                    <!-- 2. Digitar Nome -->
+                    <div id="typeArea" style="display: none;">
+                        <input type="text" id="signerName" class="input-field"
+                            placeholder="Digite seu nome completo aqui..." oninput="updateTextPreview()"
+                            style="font-size: 1.2rem; margin-bottom: 1rem; border-color: var(--primary);">
+                        <div
+                            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div class="font-option active sig-font-1" onclick="selectFont(1, this)">Modelo 1</div>
+                            <div class="font-option sig-font-2" onclick="selectFont(2, this)">Modelo 2</div>
+                            <div class="font-option sig-font-3" onclick="selectFont(3, this)">Modelo 3</div>
+                        </div>
+                        <div id="textSigPreview" class="sig-font-1">Prévia da Assinatura</div>
+                    </div>
+
+                    <!-- 3. Area de Upload de Foto -->
+                    <div id="uploadArea"
+                        style="display: none; background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 0.5rem; border: 1px dashed var(--border); text-align: center;">
+                        <input type="file" id="sigFile" accept="image/*" class="input-field" onchange="previewFile()">
+                        <div id="filePreview" style="margin-top: 1rem; display: none;">
+                            <img id="previewImg"
+                                style="max-height: 120px; max-width: 100%; border-radius: 5px; border: 1px solid #555;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <label
+                        style="display: flex; align-items: flex-start; gap: 1rem; cursor: pointer; font-size: 0.85rem; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 0.5rem;">
+                        <input type="checkbox" id="termsCheck" style="width: 1.5rem; height: 1.5rem; margin-top: -2px;">
+                        <span>Eu declaro que li o documento e estou ciente da validade jurídica desta assinatura digital
+                            conforme a legislação vigente.</span>
+                    </label>
+
+                    <div id="validationStatus"
+                        style="font-size: 0.85rem; color: #fbbf24; display: none; text-align: center; font-weight: 600;">
+                        ⌛ Processando segurança e localização...
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                        <button id="signBtn" class="btn btn-success" disabled onclick="handleSign()"
+                            style="padding: 1.2rem; font-size: 1.1rem; letter-spacing: 1px;">
+                            ✓ FINALIZAR E ASSINAR
+                        </button>
+                        <form action="{{ url_for('action_reject', doc_id=doc.id) }}" method="post" style="width:100%;">
+                            <button type="submit" class="btn btn-outline"
+                                style="width:100%; color: var(--danger); border-color: var(--danger); padding: 1.2rem; font-size: 0.9rem;">
+                                RECUSAR
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% elif doc.status == 'rejected' %}
+            <div class="glass-card" style="text-align: center; border-color: var(--danger); padding: 4rem 2rem;">
+                <h2 style="color: var(--danger); font-size: 2.5rem; font-weight: 900;">Documento Recusado</h2>
+                <p style="color: var(--text-muted); font-size: 1.2rem;">Você optou por não assinar este contrato.</p>
+            </div>
+            {% else %}
+            <div class="glass-card" style="text-align: center; border-color: var(--success); padding: 4rem 2rem;">
+                <h2 style="color: var(--success); font-size: 2.5rem; font-weight: 900;">✓ Tudo Pronto!</h2>
+                <p style="color: var(--text-white); font-size: 1.2rem; margin-bottom: 2rem;">O documento foi assinado
+                    com sucesso e sua via está disponível.</p>
+                <a href="{{ url_for('download_pdf', doc_id=doc.id) }}" class="btn btn-primary" target="_blank"
+                    style="padding: 1rem 2rem;">
+                    BAIXAR MEU COMPROVANTE (PDF)
+                </a>
+            </div>
+            {% endif %}
+    </main>
+
+    <script>
+        function closeGuide() { document.getElementById('guideOverlay').style.display = 'none'; }
+
+        const canvas = document.getElementById('sigCanvas');
+        const ctx = canvas.getContext('2d');
+        let sigMethod = 'draw';
+        let drawing = false;
+        let uploadedBase64 = null;
+        let currentFont = 1;
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = "round";
+        }
+        window.onload = resizeCanvas;
+        window.onresize = resizeCanvas;
+
+        // Desenho
+        if (canvas) {
+            canvas.addEventListener('mousedown', startD);
+            canvas.addEventListener('mousemove', drawD);
+            canvas.addEventListener('mouseup', stopD);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startD(e.touches[0]); });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); drawD(e.touches[0]); });
+            canvas.addEventListener('touchend', stopD);
+        }
+
+        function startD(e) { drawing = true; ctx.beginPath(); ctx.moveTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top); }
+        function drawD(e) { if (!drawing) return; ctx.lineTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top); ctx.stroke(); }
+        function stopD() { drawing = false; }
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+        function switchMethod(m) {
+            sigMethod = m;
+            document.getElementById('drawArea').style.display = m === 'draw' ? 'block' : 'none';
+            document.getElementById('typeArea').style.display = m === 'type' ? 'block' : 'none';
+            document.getElementById('uploadArea').style.display = m === 'upload' ? 'block' : 'none';
+
+            ['btnDraw', 'btnType', 'btnUpload'].forEach(id => document.getElementById(id).style.background = 'transparent');
+            document.getElementById('btn' + m.charAt(0).toUpperCase() + m.slice(1)).style.background = 'var(--primary)';
+            if (m === 'draw') resizeCanvas();
+        }
+
+        function previewFile() {
+            const file = document.getElementById('sigFile').files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                uploadedBase64 = reader.result;
+                document.getElementById('previewImg').src = reader.result;
+                document.getElementById('filePreview').style.display = 'block';
+            };
+            if (file) reader.readAsDataURL(file);
+        }
+
+        function updateTextPreview() {
+            const name = document.getElementById('signerName').value;
+            const preview = document.getElementById('textSigPreview');
+            preview.innerText = name || "Sua Assinatura";
+        }
+
+        function selectFont(num, el) {
+            currentFont = num;
+            document.querySelectorAll('.font-option').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+            const preview = document.getElementById('textSigPreview');
+            preview.className = '';
+            preview.classList.add('sig-font-' + num);
+        }
+
+        function generateTextImage() {
+            const name = document.getElementById('signerName').value;
+            if (!name) return null;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 400; tempCanvas.height = 150;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.fillStyle = "white"; tCtx.fillRect(0, 0, 400, 150);
+            tCtx.fillStyle = "black";
+            const fontMap = { 1: "40px Pacifico", 2: "45px 'Dancing Script'", 3: "55px 'Mrs Saint Delafield'" };
+            tCtx.font = fontMap[currentFont];
+            tCtx.textAlign = "center"; tCtx.textBaseline = "middle";
+            tCtx.fillText(name, 200, 75);
+            return tempCanvas.toDataURL('image/png');
+        }
+
+        const check = document.getElementById('termsCheck');
+        const btn = document.getElementById('signBtn');
+        const statusDiv = document.getElementById('validationStatus');
+
+        if (check) check.addEventListener('change', () => btn.disabled = !check.checked);
+
+        async function handleSign() {
+            if (!check.checked) return;
+
+            // 1. FORCAR GEOLOCALIZACAO (OBRIGATORIO)
+            statusDiv.style.display = "block";
+            statusDiv.innerText = "⌛ Solicitando autorização de localização obrigatória...";
+            btn.disabled = true;
+
+            let locationData = null;
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 8000 });
+                });
+                locationData = `Lat: ${pos.coords.latitude.toFixed(4)}, Lon: ${pos.coords.longitude.toFixed(4)}`;
+            } catch (e) {
+                alert("A localização é OBRIGATÓRIA para validar este documento legal.");
+                btn.disabled = false; statusDiv.style.display = "none";
+                return;
+            }
+
+            // 2. OBTER ASSINATURA VISUAL
+            let visualSig = null;
+            if (sigMethod === 'draw') visualSig = canvas.toDataURL('image/png');
+            else if (sigMethod === 'type') visualSig = generateTextImage();
+            else visualSig = uploadedBase64;
+
+            if (!visualSig) { alert("Por favor, forneça sua assinatura nos modelos disponíveis."); btn.disabled = false; return; }
+
+            const macSimulated = `HW-${navigator.hardwareConcurrency || 0}-${navigator.platform}-${window.screen.width}`;
+
+            const response = await fetch('/api/sign_client/{{ doc.id }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    location: locationData,
+                    mac_address: macSimulated,
+                    visual_signature: visualSig
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) window.location.reload();
+            else { alert("Erro: " + result.message); btn.disabled = false; }
+        }
+    </script>
+</body>
+
+</html>

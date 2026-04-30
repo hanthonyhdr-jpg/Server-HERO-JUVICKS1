@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprovante Digital - JUVIKS SYSTEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #38bdf8;
+            --bg-dark: #020617;
+            --card-bg: #0f172a;
+            --text-high: #f8fafc;
+            --text-mid: #94a3b8;
+            --success: #22c55e;
+            --glow: rgba(14, 165, 233, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-high); 
+            font-family: 'Outfit', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            padding: 50px 20px;
+        }
+
+        .receipt-card {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 32px;
+            padding: 50px;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative Elements */
+        .receipt-card::before {
+            content: ''; position: absolute; top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, var(--glow) 0%, transparent 70%);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 60px;
+        }
+
+        .brand h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p { color: var(--text-mid); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; }
+
+        .status-stamp {
+            transform: rotate(-15deg);
+            border: 3px solid var(--success);
+            color: var(--success);
+            padding: 5px 15px;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .amount-highlight {
+            background: rgba(255,255,255,0.02);
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 40px;
+        }
+
+        .amount-highlight label { display: block; color: var(--text-mid); font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; }
+        .amount-highlight .value { font-size: 3rem; font-weight: 800; color: var(--text-high); }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .detail-item label { display: block; color: var(--text-mid); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .detail-item span { font-size: 1rem; font-weight: 600; color: var(--text-high); }
+
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+        .items-table th { text-align: left; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-mid); font-size: 0.7rem; text-transform: uppercase; }
+        .items-table td { padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.9rem; }
+
+        .totals-summary {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--text-mid); font-size: 0.9rem; }
+        .summary-row.total { color: var(--text-high); font-weight: 800; font-size: 1.1rem; margin-top: 15px; }
+
+        .security-footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px dashed rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .hash-code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: var(--secondary);
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .footer-text { font-size: 0.7rem; color: var(--text-mid); line-height: 1.5; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .receipt-card { box-shadow: none; border: 1px solid #eee; background: white; color: black; max-width: 100%; }
+            .value, .brand h1, .summary-row.total { color: black !important; -webkit-text-fill-color: black !important; }
+            .amount-highlight { background: #f8fafc; border: 1px solid #eee; }
+            .hash-code { background: #f1f5f9; color: black; }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-card">
+        <div class="header">
+            <div class="brand">
+                <h1>JUVIKS SYSTEM</h1>
+                <p>Comprovante de Operação</p>
+            </div>
+            <div class="status-stamp">
+                {{STATUS_PAGAMENTO}}
+            </div>
+        </div>
+
+        <div class="amount-highlight">
+            <label>Valor Total Recebido</label>
+            <div class="value">R$ {{VALOR_TOTAL}}</div>
+        </div>
+
+        <div class="details-grid">
+            <div class="detail-item">
+                <label>Beneficiário</label>
+                <span>JUVIKS HERO SOLUTIONS</span>
+            </div>
+            <div class="detail-item">
+                <label>Pagador</label>
+                <span>{{CLIENTE_NOME}}</span>
+            </div>
+            <div class="detail-item">
+                <label>ID da Transação</label>
+                <span>#{{ID_PEDIDO}}</span>
+            </div>
+            <div class="detail-item">
+                <label>Data / Hora</label>
+                <span>{{TIMESTAMP_GERACAO}}</span>
+            </div>
+            <div class="detail-item">
+                <label>Método de Pagamento</label>
+                <span>{{FORMA_PAGAMENTO}}</span>
+            </div>
+            <div class="detail-item">
+                <label>Código de Autenticação</label>
+                <span style="font-size: 0.75rem; color: var(--secondary);">{{CHAVE_ACESSO}}</span>
+            </div>
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Referência de Serviço</th>
+                    <th style="text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Pedido de Venda e Serviços — Ref: #{{ID_PEDIDO}}</td>
+                    <td style="text-align: right; font-weight: 700;">R$ {{VALOR_BRUTO}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals-summary">
+            <div class="summary-row">
+                <span>Valor do Pedido</span>
+                <span>R$ {{VALOR_BRUTO}}</span>
+            </div>
+            <div class="summary-row">
+                <span>Taxas Administrativas</span>
+                <span>- R$ {{VALOR_TAXAS}}</span>
+            </div>
+            <div class="summary-row total">
+                <span>VALOR LÍQUIDO</span>
+                <span>R$ {{VALOR_TOTAL}}</span>
+            </div>
+        </div>
+
+        <div class="security-footer">
+            <div class="hash-code">{{CHAVE_ACESSO}}</div>
+            <p class="footer-text">
+                Este comprovante tem validade jurídica como recibo de quitação.<br>
+                A autenticidade deste documento pode ser validada via QR Code ou chave de acesso.<br>
+                © 2026 Juviks Hero System - Todos os direitos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

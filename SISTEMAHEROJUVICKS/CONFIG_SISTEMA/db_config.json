@@ -1,0 +1,4 @@
+{
+  "engine": "sqlite",
+  "fallback_sqlite": true
+}

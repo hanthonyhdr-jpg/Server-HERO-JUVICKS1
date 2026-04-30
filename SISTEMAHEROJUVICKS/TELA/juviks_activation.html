@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JUVIKS SYSTEM — Ativação</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080d;
+    --surface: #0e1018;
+    --border: rgba(255,255,255,0.07);
+    --border-glow: rgba(99,197,255,0.3);
+    --accent: #63c5ff;
+    --accent2: #a78bfa;
+    --text: #e8eaf0;
+    --muted: #5a5f72;
+    --danger: #ff5f6d;
+    --success: #4ade80;
+    --gold: #f5c842;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    overflow: hidden;
+  }
+
+  /* Animated noise grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.35;
+  }
+
+  /* Radial ambient glow */
+  .ambient {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .ambient-1 {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(99,197,255,0.07) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation: drift1 12s ease-in-out infinite alternate;
+  }
+  .ambient-2 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(167,139,250,0.06) 0%, transparent 70%);
+    bottom: -80px; right: -80px;
+    animation: drift2 15s ease-in-out infinite alternate;
+  }
+  @keyframes drift1 { to { transform: translate(60px, 40px); } }
+  @keyframes drift2 { to { transform: translate(-40px, -60px); } }
+
+  /* Main layout */
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 520px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 44px;
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 0 0 1px rgba(99,197,255,0.05),
+      0 40px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+
+
+  .logo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99,197,255,0.08);
+    border: 1px solid rgba(99,197,255,0.2);
+    border-radius: 6px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+  .logo-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .logo-badge span {
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .title span { color: var(--accent); }
+
+  .status-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,95,109,0.1);
+    border: 1px solid rgba(255,95,109,0.25);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--danger);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .status-chip::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 6px var(--danger);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin-bottom: 32px;
+  }
+
+  /* Info block */
+  .info-block {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 28px;
+  }
+  .info-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .info-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(99,197,255,0.06);
+  }
+  .copy-btn.copied {
+    border-color: var(--success);
+    color: var(--success);
+    background: rgba(74,222,128,0.06);
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* License input */
+  .input-group {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .license-input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    caret-color: var(--accent);
+  }
+  .license-input::placeholder {
+    color: rgba(255,255,255,0.12);
+    letter-spacing: 0.18em;
+  }
+  .license-input:focus {
+    border-color: var(--border-glow);
+    background: rgba(99,197,255,0.04);
+    box-shadow: 0 0 0 3px rgba(99,197,255,0.08), 0 0 30px rgba(99,197,255,0.05);
+  }
+  .license-input.valid {
+    border-color: rgba(74,222,128,0.4);
+    box-shadow: 0 0 0 3px rgba(74,222,128,0.06);
+  }
+  .license-input.invalid {
+    border-color: rgba(255,95,109,0.4);
+    box-shadow: 0 0 0 3px rgba(255,95,109,0.06);
+    animation: shake 0.3s ease;
+  }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+  }
+
+  .input-hint {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Activate button */
+  .btn-activate {
+    width: 100%;
+    position: relative;
+    padding: 17px 24px;
+    background: linear-gradient(135deg, #63c5ff 0%, #a78bfa 100%);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #07080d;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 0 30px rgba(99,197,255,0.2), 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .btn-activate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-activate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(99,197,255,0.3), 0 16px 32px rgba(0,0,0,0.5);
+  }
+  .btn-activate:hover::before { opacity: 1; }
+  .btn-activate:active { transform: translateY(0); }
+  .btn-activate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-activate .btn-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-icon {
+    width: 18px; height: 18px;
+    transition: transform 0.3s;
+  }
+  .btn-activate:hover .btn-icon { transform: rotate(15deg); }
+
+  /* Spinner */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(7,8,13,0.3);
+    border-top-color: #07080d;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Message */
+  .message {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .message.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .message.error {
+    background: rgba(255,95,109,0.08);
+    border: 1px solid rgba(255,95,109,0.2);
+    color: var(--danger);
+  }
+  .message.success {
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.2);
+    color: var(--success);
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .footer-left strong {
+    color: rgba(255,255,255,0.3);
+    font-weight: 500;
+  }
+  .support-link {
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(99,197,255,0.25);
+    padding-bottom: 1px;
+    transition: border-color 0.2s;
+  }
+  .support-link:hover { border-color: var(--accent); }
+
+  /* Segmented input styling enhancement */
+  .segments {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .seg {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    color: var(--text);
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    caret-color: var(--accent);
+    min-width: 0;
+  }
+  .seg::placeholder { color: rgba(255,255,255,0.1); }
+  .seg:focus {
+    border-color: var(--border-glow);
+    background: rgba(99,197,255,0.04);
+    box-shadow: 0 0 0 3px rgba(99,197,255,0.08);
+  }
+  .seg-sep {
+    color: var(--muted);
+    font-size: 18px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+
+<div class="wrapper">
+  <div class="card">
+
+    <div class="header">
+      <div class="logo-area">
+        <div class="logo-badge">
+          <div class="logo-dot"></div>
+          <span>Juviks System</span>
+        </div>
+        <div class="title">Ativação de<br><span>Licença</span></div>
+      </div>
+      <div class="status-chip">Pendente</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="info-block">
+      <div class="info-label">Hardware ID — Este Dispositivo</div>
+      <div class="info-value">
+        <span id="hw-id">D11B-4863-A1D5</span>
+        <button class="copy-btn" id="copy-btn" onclick="copyHWID()">Copiar</button>
+      </div>
+    </div>
+
+    <div class="section-label">Chave de Licença</div>
+    <div class="input-group">
+      <input class="license-input" id="license-key" maxlength="19" placeholder="XXXX-XXXX-XXXX-XXXX" oninput="formatKey(this)">
+    </div>
+    <div class="input-hint">Insira a chave fornecida pelo suporte técnico</div>
+
+    <button class="btn-activate" id="activate-btn" onclick="activate()">
+      <div class="btn-content">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <span id="btn-text">Ativar Agora</span>
+        <div class="spinner" id="spinner"></div>
+      </div>
+    </button>
+
+    <div class="message" id="message"></div>
+
+    <div class="footer">
+      <div class="footer-left">Versão <strong>2.4.1</strong> · Sistema <strong>JUVIKS</strong></div>
+      <a href="#" class="support-link">Contatar Suporte →</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function formatKey(el) {
+    let val = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    let formatted = val.match(/.{1,4}/g);
+    el.value = formatted ? formatted.join('-') : val;
+  }
+
+  function copyHWID() {
+    const id = document.getElementById('hw-id').textContent;
+    
+    // Delega ao navegador pai para furar o Iframe do Streamlit
+    const copyTarget = (window.parent && window.parent.navigator.clipboard) ? 
+                        window.parent.navigator.clipboard : navigator.clipboard;
+    
+    if (copyTarget) {
+      copyTarget.writeText(id).then(() => {
+        showSuccess();
+      }).catch(err => {
+        fallbackCopy(id);
+      });
+    } else {
+      fallbackCopy(id);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showSuccess();
+    } catch (err) {}
+    document.body.removeChild(textArea);
+  }
+
+  function showSuccess() {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'COPIADO!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'COPIAR';
+      btn.classList.remove('copied');
+    }, 2000);
+  }
+
+  function getKey() {
+    return document.getElementById('license-key').value;
+  }
+
+  function showMessage(type, text) {
+    const el = document.getElementById('message');
+    el.className = 'message ' + type;
+    el.textContent = text;
+    setTimeout(() => el.classList.add('show'), 10);
+  }
+
+  function hideMessage() {
+    const el = document.getElementById('message');
+    el.classList.remove('show');
+  }
+
+  function activate() {
+    hideMessage();
+    const key = getKey();
+    const filled = key.length === 19;
+
+    if (!filled) {
+      const el = document.getElementById('license-key');
+      el.classList.add('invalid');
+      setTimeout(() => el.classList.remove('invalid'), 600);
+      showMessage('error', '⚠ A chave de licença deve conter 16 caracteres.');
+      return;
+    }
+
+    const btn = document.getElementById('activate-btn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btn-text');
+    const icon = btn.querySelector('.btn-icon');
+
+    btn.disabled = true;
+    icon.style.display = 'none';
+    spinner.style.display = 'block';
+    btnText.textContent = 'Validando...';
+
+    setTimeout(() => {
+      spinner.style.display = 'none';
+      icon.style.display = '';
+      btnText.textContent = 'Ativar Agora';
+      btn.disabled = false;
+
+      // Simulate validation (replace with real API call)
+      const valid = key.startsWith('JVK');
+      if (valid) {
+        document.getElementById('license-key').classList.add('valid');
+        showMessage('success', '✓ Licença ativada com sucesso! Reiniciando o sistema...');
+        btn.style.background = 'linear-gradient(135deg,#4ade80,#22d3ee)';
+      } else {
+        const el = document.getElementById('license-key');
+        el.classList.add('invalid');
+        setTimeout(() => el.classList.remove('invalid'), 600);
+        showMessage('error', '✕ Chave inválida ou expirada. Contate o suporte.');
+      }
+    }, 2200);
+  }
+
+
+</script>
+</body>
+</html>

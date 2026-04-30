@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-deep: #020b18;
+    --bg-field: #07192e;
+    --border-glow: #00c8ff;
+    --border-dim: #0a2a42;
+    --accent-cyan: #00d4ff;
+    --accent-blue: #0077ff;
+    --accent-hot: #00ffcc;
+    --text-primary: #e8f4ff;
+    --text-muted: #4a7a9b;
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-deep);
+    font-family: 'Exo 2', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #bg-canvas { position: fixed; inset: 0; z-index: 0; }
+
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 1;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.025) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 25s linear infinite;
+  }
+  @keyframes gridMove { 0%{transform:translateY(0)} 100%{transform:translateY(50px)} }
+
+  .side-elements { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+
+  .hex {
+    position: absolute;
+    border: 1px solid rgba(0,200,255,0.15);
+    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+    animation: hexFloat linear infinite;
+  }
+  @keyframes hexFloat {
+    0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0,119,255,0.2);
+    animation: ringPulse ease-out infinite;
+  }
+  @keyframes ringPulse {
+    0%   { transform: scale(0.6); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  .h-line {
+    position: absolute; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(0,200,255,0.3) 20%, rgba(0,200,255,0.6) 50%, rgba(0,200,255,0.3) 80%, transparent 100%);
+    animation: hLineScan linear infinite;
+  }
+  @keyframes hLineScan {
+    0%   { top: 110%; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: -10%; opacity: 0; }
+  }
+
+  .data-bar { position: absolute; top: 0; width: 1px; height: 100%; overflow: hidden; }
+
+  .code-stream {
+    position: absolute; top: 0;
+    font-family: 'Rajdhani', monospace; font-size: 11px;
+    letter-spacing: 1px; line-height: 1.9;
+    color: rgba(0,200,255,0.18);
+    animation: streamFall linear infinite;
+    white-space: nowrap; user-select: none;
+  }
+  @keyframes streamFall {
+    0%   { transform: translateY(-100%); opacity: 0; }
+    5%   { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(100vh); opacity: 0; }
+  }
+
+  .orb { position: fixed; border-radius: 50%; filter: blur(70px); pointer-events: none; animation: floatOrb ease-in-out infinite; z-index: 1; }
+  .orb-1 { width:300px;height:300px;background:rgba(0,119,255,0.1);  top:5%;   left:-8%; animation-duration:9s;  animation-delay:0s; }
+  .orb-2 { width:250px;height:250px;background:rgba(0,212,255,0.08); bottom:8%;right:-6%;animation-duration:11s; animation-delay:-5s;}
+  .orb-3 { width:180px;height:180px;background:rgba(0,255,204,0.06); top:55%;  left:2%;  animation-duration:7s;  animation-delay:-3s;}
+  .orb-4 { width:200px;height:200px;background:rgba(0,119,255,0.07); top:20%;  right:2%; animation-duration:13s; animation-delay:-7s;}
+  @keyframes floatOrb {
+    0%,100% { transform:translateY(0) scale(1); }
+    50%      { transform:translateY(-35px) scale(1.08); }
+  }
+
+  .container { position: relative; z-index: 10; width: 420px; animation: fadeIn 0.8s ease both; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+  .panel {
+    background: linear-gradient(160deg, rgba(4,15,30,0.97) 0%, rgba(2,11,24,0.99) 100%);
+    border: 1px solid var(--border-dim); border-radius: 16px;
+    padding: 44px 40px 36px; position: relative;
+    box-shadow: 0 0 0 1px rgba(0,200,255,0.05), 0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(0,119,255,0.07), inset 0 1px 0 rgba(0,200,255,0.08);
+    overflow: hidden;
+  }
+  .panel::before {
+    content:''; position:absolute; top:0; left:10%; right:10%; height:2px;
+    background:linear-gradient(90deg,transparent,var(--accent-cyan),var(--accent-blue),var(--accent-cyan),transparent);
+    animation:linePulse 3s ease-in-out infinite;
+  }
+  @keyframes linePulse { 0%,100%{opacity:0.6} 50%{opacity:1;box-shadow:0 0 12px var(--accent-cyan)} }
+
+  .scan-line { position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,255,0.4),transparent);animation:scan 5s linear infinite;pointer-events:none; }
+  @keyframes scan { 0%{top:0;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:100%;opacity:0} }
+
+  .corner{ position:absolute; width:16px; height:16px; }
+  .corner-tl{ top:8px;left:8px;border-top:2px solid var(--accent-cyan);border-left:2px solid var(--accent-cyan); }
+  .corner-tr{ top:8px;right:8px;border-top:2px solid var(--accent-cyan);border-right:2px solid var(--accent-cyan); }
+  .corner-bl{ bottom:8px;left:8px;border-bottom:2px solid var(--border-glow);border-left:2px solid var(--border-glow);opacity:0.4; }
+  .corner-br{ bottom:8px;right:8px;border-bottom:2px solid var(--border-glow);border-right:2px solid var(--border-glow);opacity:0.4; }
+
+  .logo-area{ text-align:center; margin-bottom:36px; }
+  .logo-icon{
+    width:56px;height:56px;margin:0 auto 16px;
+    background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));
+    border-radius:14px;display:flex;align-items:center;justify-content:center;
+    font-size:26px;box-shadow:0 0 24px rgba(0,119,255,0.4),0 0 48px rgba(0,119,255,0.15);
+    animation:iconGlow 3s ease-in-out infinite;position:relative;overflow:hidden;
+  }
+  .logo-icon::after{
+    content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+    background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.12) 50%,transparent 70%);
+    animation:shine 4s ease-in-out infinite;
+  }
+  @keyframes iconGlow { 0%,100%{box-shadow:0 0 24px rgba(0,119,255,0.4),0 0 48px rgba(0,119,255,0.15)} 50%{box-shadow:0 0 36px rgba(0,200,255,0.6),0 0 60px rgba(0,200,255,0.2)} }
+  @keyframes shine { 0%{transform:translateX(-100%) rotate(45deg)} 30%,100%{transform:translateX(100%) rotate(45deg)} }
+
+  .logo-title{
+    font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;
+    letter-spacing:4px;text-transform:uppercase;
+    background:linear-gradient(135deg,#ffffff,var(--accent-cyan));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;
+  }
+  .logo-sub{ font-size:10px;letter-spacing:6px;color:var(--text-muted);text-transform:uppercase;margin-top:4px; }
+
+  .field-group{ margin-bottom:18px; }
+  label{ display:block;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px; }
+  .field-wrap{ position:relative; }
+  .field-icon{ position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;opacity:0.5;pointer-events:none;transition:opacity 0.3s; }
+
+  input[type="text"], input[type="password"] {
+    width:100%;padding:13px 14px 13px 42px;
+    background:var(--bg-field);border:1px solid var(--border-dim);border-radius:8px;
+    color:var(--text-primary);font-family:'Exo 2',sans-serif;font-size:14px;
+    outline:none;transition:all 0.3s ease;letter-spacing:0.5px;
+  }
+  input::placeholder{ color:#1e3a52;letter-spacing:1px; }
+  input:focus{ border-color:var(--accent-cyan);background:rgba(7,25,46,0.9);box-shadow:0 0 0 3px rgba(0,200,255,0.08),0 0 20px rgba(0,200,255,0.06); }
+
+  .eye-btn{ position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;transition:color 0.2s;line-height:1; }
+  .eye-btn:hover{ color:var(--accent-cyan); }
+
+  .key-badge{
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    background:linear-gradient(90deg,rgba(0,119,255,0.2),rgba(0,200,255,0.2));
+    border:1px solid rgba(0,200,255,0.2);border-radius:4px;
+    padding:2px 7px;font-size:9px;letter-spacing:1.5px;color:var(--accent-cyan);font-weight:700;text-transform:uppercase;white-space:nowrap;
+  }
+  .key-input{ padding-left:56px!important;font-family:'Rajdhani',monospace!important;letter-spacing:2px!important;color:rgba(0,200,255,0.7)!important; }
+
+  .save-row{ display:flex;align-items:center;gap:10px;margin:22px 0 28px; }
+  .check-wrap{ position:relative;width:18px;height:18px;flex-shrink:0; }
+  .check-wrap input{ opacity:0;position:absolute;inset:0;cursor:pointer;margin:0; }
+  .checkmark{ position:absolute;inset:0;background:var(--bg-field);border:1px solid var(--border-dim);border-radius:4px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;pointer-events:none; }
+  .check-wrap input:checked ~ .checkmark{ background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));border-color:transparent; }
+  .checkmark::after{ content:'✓';color:white;font-size:11px;font-weight:800;opacity:0;transform:scale(0.5);transition:all 0.2s; }
+  .check-wrap input:checked ~ .checkmark::after{ opacity:1;transform:scale(1); }
+  .save-label{ font-size:12px;color:var(--text-muted);letter-spacing:0.5px;display:flex;align-items:center;gap:6px; }
+
+  .btn-access{
+    width:100%;padding:15px;
+    background:linear-gradient(135deg,var(--accent-blue) 0%,var(--accent-cyan) 100%);
+    border:none;border-radius:8px;color:#fff;
+    font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;
+    letter-spacing:4px;text-transform:uppercase;cursor:pointer;
+    position:relative;overflow:hidden;transition:all 0.3s ease;
+    box-shadow:0 4px 24px rgba(0,119,255,0.35);
+  }
+  .btn-access::before{ content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);transition:left 0.5s ease; }
+  .btn-access:hover{ transform:translateY(-1px);box-shadow:0 8px 32px rgba(0,200,255,0.45); }
+  .btn-access:hover::before{ left:100%; }
+  .btn-access:active{ transform:translateY(0); }
+  .btn-inner{ display:flex;align-items:center;justify-content:center;gap:10px; }
+
+  .footer{ text-align:center;margin-top:24px;display:flex;align-items:center;justify-content:center;gap:8px; }
+  .status-dot{ width:6px;height:6px;border-radius:50%;background:var(--accent-hot);animation:blink 2s ease-in-out infinite;box-shadow:0 0 6px var(--accent-hot); }
+  @keyframes blink{ 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .footer-text{ font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted); }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div class="grid-bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="orb orb-4"></div>
+<div class="side-elements" id="sideElements"></div>
+
+<script>
+// Expande o próprio iframe para tela cheia assim que o DOM carrega
+(function() {
+  try {
+    const f = window.frameElement;
+    if (f) {
+      f.style.cssText = 'position:fixed!important;top:0!important;left:0!important;' +
+        'width:100vw!important;height:100vh!important;z-index:999999!important;border:none!important;';
+    }
+  } catch(e) {}
+})();
+</script>
+
+<div class="container">
+  <div class="panel">
+    <div class="scan-line"></div>
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+
+    <div class="logo-area">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-title">Hero Juvicks</div>
+      <div class="logo-sub">System</div>
+    </div>
+
+    <div class="field-group">
+      <label>Usuário</label>
+      <div class="field-wrap">
+        <input type="text" id="user" placeholder="Digite seu usuário" autocomplete="off">
+        <span class="field-icon">👤</span>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Senha</label>
+      <div class="field-wrap">
+        <input type="password" id="pwd" placeholder="••••••••">
+        <span class="field-icon">🔒</span>
+        <button class="eye-btn" onclick="togglePwd()" type="button" id="eyeBtn">👁</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Chave de Acesso</label>
+      <div class="field-wrap">
+        <input type="text" id="key" class="key-input" placeholder="JUV-XXXX-XXXX" autocomplete="off">
+        <span class="key-badge">KEY</span>
+      </div>
+    </div>
+
+    <div class="save-row">
+      <label class="check-wrap">
+        <input type="checkbox" id="keep" checked>
+        <div class="checkmark"></div>
+      </label>
+      <span class="save-label">🔐 Salvar neste dispositivo</span>
+    </div>
+
+    <button class="btn-access" type="button" onclick="submitLogin()">
+      <div class="btn-inner">
+        <span>🚀</span>
+        <span>ACESSAR</span>
+      </div>
+    </button>
+
+    <div class="footer">
+      <div class="status-dot"></div>
+      <span class="footer-text">Dispositivo: Remoto</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CANVAS partículas ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', () => { resize(); init(); });
+
+function rand(a, b) { return Math.random()*(b-a)+a; }
+
+function init() {
+  particles = [];
+  const count = Math.floor((W * H) / 14000);
+  for (let i = 0; i < count; i++) {
+    particles.push({ x:rand(0,W), y:rand(0,H), vx:rand(-0.25,0.25), vy:rand(-0.25,0.25), r:rand(1,2.5), alpha:rand(0.2,0.7) });
+  }
+}
+init();
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i+1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 130) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(0,180,255,${0.08*(1-dist/130)})`;
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+      }
+    }
+  }
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(0,200,255,${p.alpha})`;
+    ctx.shadowBlur = 6; ctx.shadowColor = '#00d4ff';
+    ctx.fill(); ctx.shadowBlur = 0;
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── Elementos laterais ──
+const sideEl = document.getElementById('sideElements');
+const codeChars = ['01','10','JUV','HEX','SYS','001','110','KEY','USR','NET','SEC','AUT'];
+
+function spawnHex() {
+  const hex = document.createElement('div');
+  hex.className = 'hex';
+  const size = rand(30, 90);
+  const leftSide = Math.random() < 0.5;
+  hex.style.cssText = `width:${size}px;height:${size}px;left:${leftSide?rand(0,30):rand(70,100)}%;bottom:-${size}px;animation-duration:${rand(8,18)}s;animation-delay:${rand(0,3)}s;border-color:rgba(0,${Math.floor(rand(150,255))},255,${rand(0.08,0.2)});background:rgba(0,150,255,${rand(0.01,0.04)});`;
+  sideEl.appendChild(hex);
+  setTimeout(() => hex.remove(), 20000);
+}
+
+function spawnHLine() {
+  const line = document.createElement('div');
+  line.className = 'h-line';
+  const dur = rand(6, 14);
+  line.style.cssText = `animation-duration:${dur}s;`;
+  sideEl.appendChild(line);
+  setTimeout(() => line.remove(), dur*1000+500);
+}
+
+function spawnDataBar() {
+  const bar = document.createElement('div');
+  bar.className = 'data-bar';
+  const dur = rand(3, 8);
+  const leftSide = Math.random() < 0.5;
+  bar.style.cssText = `left:${leftSide?rand(2,28):rand(72,98)}%;`;
+  const inner = document.createElement('div');
+  inner.style.cssText = `position:absolute;width:1px;background:linear-gradient(to bottom,transparent,#00d4ff,#00ffcc,transparent);animation:dataFlow ${dur}s linear forwards;`;
+  bar.appendChild(inner);
+  sideEl.appendChild(bar);
+  setTimeout(() => bar.remove(), dur*1000+500);
+}
+
+function spawnCodeStream() {
+  const el = document.createElement('div');
+  el.className = 'code-stream';
+  const col = Array.from({length:rand(10,20)|0}, () => codeChars[Math.floor(rand(0,codeChars.length))]).join('\n');
+  el.textContent = col;
+  const leftSide = Math.random() < 0.5;
+  const dur = rand(6, 14);
+  el.style.cssText = `left:${leftSide?rand(0,25):rand(75,98)}%;animation-duration:${dur}s;color:rgba(0,200,255,${rand(0.1,0.25)});`;
+  sideEl.appendChild(el);
+  setTimeout(() => el.remove(), dur*1000+500);
+}
+
+function spawnRing() {
+  const ring = document.createElement('div');
+  ring.className = 'pulse-ring';
+  const size = rand(60, 160);
+  const leftSide = Math.random() < 0.5;
+  ring.style.cssText = `width:${size}px;height:${size}px;left:${leftSide?rand(-5,25):rand(75,105)}%;top:${rand(10,90)}%;animation-duration:${rand(2,5)}s;border-color:rgba(0,${Math.floor(rand(100,220))},255,0.2);`;
+  sideEl.appendChild(ring);
+  setTimeout(() => ring.remove(), 6000);
+}
+
+setInterval(spawnHex, 1200);
+setInterval(spawnHLine, 3500);
+setInterval(spawnDataBar, 900);
+setInterval(spawnCodeStream, 2200);
+setInterval(spawnRing, 1800);
+for(let i=0;i<4;i++){spawnHex();spawnDataBar();}
+for(let i=0;i<2;i++){spawnCodeStream();spawnRing();}
+
+// ── Inputs ──
+function togglePwd() {
+  const p = document.getElementById('pwd');
+  const b = document.getElementById('eyeBtn');
+  if (p.type==='password'){p.type='text';b.textContent='🙈';}
+  else{p.type='password';b.textContent='👁';}
+}
+
+document.querySelector('.key-input').addEventListener('input', function(e) {
+  // Apenas remove espaços e garante maiúsculas, sem forçar traços
+  let v = e.target.value.toUpperCase().replace(/\s/g, '');
+  e.target.value = v;
+});
+
+function submitLogin() {
+  const u = document.getElementById('user').value.trim();
+  const p = document.getElementById('pwd').value.trim();
+  const k = document.getElementById('key').value.trim();
+  if(!u || !p) {
+    alert("Por favor, preencha o Usuário e a Senha.");
+    return;
+  }
+
+  const btnHtml = document.querySelector('.btn-access .btn-inner');
+  if(btnHtml) btnHtml.innerHTML = '<span>⏳</span><span>CONECTANDO...</span>';
+
+  // Construímos os parâmetros
+  const params = '?login_u=' + encodeURIComponent(u) +
+                 '&login_p=' + encodeURIComponent(p) +
+                 '&login_k=' + encodeURIComponent(k);
+
+  // Tentamos determinar a URL base do pai de forma segura
+  let baseUrl = "";
+  try {
+    // Tenta acessar o pai (mesma origem)
+    baseUrl = window.parent.location.origin + window.parent.location.pathname;
+  } catch(e) {
+    // Se falhar (CORS/Sandbox), tenta inferir pela URL do iframe (Streamlit convention)
+    // No Streamlit, componentes ficam em /component/nome_do_componente/...
+    const currentPath = window.location.pathname;
+    baseUrl = currentPath.split('/component/')[0] || "/";
+  }
+
+  const loginUrl = baseUrl + params;
+
+  // Estratégia de Redirecionamento em cascata
+  try {
+    // 1. Tentativa padrão no pai
+    window.parent.location.href = loginUrl;
+  } catch(e) {
+    try {
+      // 2. Tentativa no topo (se houver múltiplos aninhamentos)
+      window.top.location.href = loginUrl;
+    } catch(e2) {
+      // 3. Fallback via Link (mais permissivo em sandboxes)
+      const a = document.createElement('a');
+      a.href = loginUrl;
+      a.target = '_parent';
+      document.body.appendChild(a);
+      a.click();
+      
+      // 4. Último recurso: redireciona o próprio frame (Streamlit detecta mudança de URL geral)
+      setTimeout(() => {
+        if(window.location.href !== loginUrl) window.location.href = loginUrl;
+      }, 500);
+    }
+  }
+}
+</script>
+</body>
+</html>

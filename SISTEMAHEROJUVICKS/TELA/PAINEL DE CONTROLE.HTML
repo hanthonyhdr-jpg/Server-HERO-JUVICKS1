@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUVIKS HERO 07 - PAINEL DE CONTROLE</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Design Variables */
+        :root {
+            --bg-color: #05050a;
+            --glass-bg: rgba(20, 20, 40, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #00f0ff;
+            --accent-secondary: #7000ff;
+            --danger: #ff2a5f;
+            --success: #00ff88;
+            --warning: #ffbd2e;
+            --text-main: #ffffff;
+            --text-muted: #8b8b99;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(112, 0, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.15), transparent 40%);
+            background-size: 100vw 100vh;
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Nav/Header */
+        header {
+            width: 100%;
+            padding: 1.5rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(5, 5, 10, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.4));
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-text h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .logo-text span {
+            font-size: 0.8rem;
+            color: var(--accent-primary);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        /* Main Content Layout */
+        main {
+            width: 100%;
+            max-width: 1600px;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 3rem;
+            flex: 1;
+        }
+
+        /* Categories Section */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        .category {
+            animation: slideUp 0.6s ease-out both;
+        }
+        
+        .category:nth-child(2) { animation-delay: 0.1s; }
+        .category:nth-child(3) { animation-delay: 0.2s; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 1px;
+        }
+
+        .category-title i {
+            color: var(--accent-secondary);
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Glassmorphism Cards */
+        .action-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transition: left 0.6s ease;
+            z-index: 1;
+        }
+
+        .action-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.6);
+            background: rgba(30, 30, 50, 0.7);
+        }
+
+        .action-card:hover::before {
+            left: 100%;
+        }
+
+        .action-card:active {
+            transform: translateY(-2px);
+        }
+
+        .card-icon {
+            font-size: 2.2rem;
+            color: var(--accent-primary);
+            margin-bottom: 8px;
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+
+        .action-card:hover .card-icon {
+            transform: scale(1.1);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            z-index: 2;
+            color: #fff;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            z-index: 2;
+            line-height: 1.5;
+        }
+
+        /* Card Color Variants */
+        .action-card.danger:hover {
+            border-color: var(--danger);
+            box-shadow: 0 15px 35px -10px rgba(255, 42, 95, 0.2);
+        }
+        .action-card.danger .card-icon { color: var(--danger); }
+
+        .action-card.success:hover {
+            border-color: var(--success);
+            box-shadow: 0 15px 35px -10px rgba(0, 255, 136, 0.2);
+        }
+        .action-card.success .card-icon { color: var(--success); }
+        
+        .action-card.highlight {
+            background: linear-gradient(145deg, rgba(112, 0, 255, 0.1), rgba(0, 240, 255, 0.05));
+            border-color: rgba(0, 240, 255, 0.3);
+        }
+        .action-card.highlight:hover {
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .action-card.warning:hover {
+            border-color: var(--warning);
+            box-shadow: 0 15px 35px -10px rgba(255, 189, 46, 0.2);
+        }
+        .action-card.warning .card-icon { color: var(--warning); }
+
+
+        /* Right Sidebar Console */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            height: calc(100vh - 150px);
+            position: sticky;
+            top: 100px;
+        }
+
+        .console-container {
+            background: rgba(5, 5, 10, 0.8);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+        }
+
+        .console-header {
+            background: rgba(20, 20, 30, 0.9);
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .mac-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .mac-btn.close { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
+        .mac-btn.min { background: var(--warning); box-shadow: 0 0 5px var(--warning); }
+        .mac-btn.max { background: var(--success); box-shadow: 0 0 5px var(--success); }
+
+        .console-title {
+            margin-left: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #8b8b99;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .console-body {
+            padding: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            color: #00ff88;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
+        .console-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .console-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .log-line {
+            line-height: 1.5;
+            word-wrap: break-word;
+            opacity: 0;
+            animation: fadeIn 0.2s forwards;
+        }
+        
+        .log-line.cmd { color: var(--accent-primary); font-weight: bold; margin-top: 10px; }
+        .log-line.error { color: var(--danger); }
+        .log-line.warn { color: var(--warning); }
+        .log-line.info { color: #aaa; }
+        .log-line.success { color: var(--success); }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: #00ff88;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--glass-border);
+            width: 100%;
+            margin-top: auto;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                height: 400px;
+                position: relative;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <i class="fa-solid fa-layer-group logo-icon"></i>
+            <div class="logo-text">
+                <h1>JUVIKS HERO</h1>
+                <span>Master Control Panel 07</span>
+            </div>
+        </div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            API GUI ONLINE
+        </div>
+    </header>
+
+    <main>
+        <div class="dashboard">
+            <section class="category">
+                <div class="category-title"><i class="fa-solid fa-power-off"></i> Inicialização e Execução</div>
+                <div class="grid-cards">
+                    <div class="action-card success" onclick="simCmd('INICIAR SISTEMA (BACKGROUND)', 'Iniciando launcher.py...\nServidor Online!', 'success', '1')">
+                        <i class="fa-solid fa-rocket card-icon"></i>
+                        <div class="card-title">Iniciar Sistema</div>
+                        <div class="card-desc">Ativa todos os serviços via launcher.py em background de forma segura.</div>
+                    </div>
+                    <div class="action-card danger" onclick="simCmd('FINALIZAR TODOS OS PROCESSOS', 'Todos os processos paralisados.', 'error', '2')">
+                        <i class="fa-solid fa-skull-crossbones card-icon"></i>
+                        <div class="card-title">Finalizar Processos</div>
+                        <div class="card-desc">Encerra abruptamente todas as conexões e instâncias ativas do Juviks.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="category">
+                <div class="category-title"><i class="fa-solid fa-sliders"></i> Ferramentas Administrativas</div>
+                <div class="grid-cards">
+                    <div class="action-card highlight" onclick="simCmd('ABRIR PAINEL DE CONTROLE MASTER', 'Conectando ao Painel...', 'info', '3')">
+                        <i class="fa-solid fa-chart-line card-icon"></i>
+                        <div class="card-title">Painel Master</div>
+                        <div class="card-desc">Inicia a interface de administração e controle financeiro.</div>
+                    </div>
+                    <div class="action-card" onclick="simCmd('GERENCIADOR DE LICENCAS', 'Extraindo HARDWARE ID...', 'info', '4')">
+                        <i class="fa-solid fa-key card-icon"></i>
+                        <div class="card-title">Licenças e HWID</div>
+                        <div class="card-desc">Emissão de licenças vinculadas ao hardware.</div>
+                    </div>
+                    <div class="action-card" onclick="simCmd('EDITOR DE TEMAS E BRANDING', 'Carregando UI Builder na porta 8502...', 'info', '5')">
+                        <i class="fa-solid fa-paintbrush card-icon"></i>
+                        <div class="card-title">Editor de Temas</div>
+                        <div class="card-desc">Alteração visual rápida via servidor 8502.</div>
+                    </div>
+                    <div class="action-card" onclick="simCmd('GERENCIADOR DE ACESSOS EXTERNOS', 'Conectando ao firewall...', 'info', '6')">
+                        <i class="fa-solid fa-shield-halved card-icon"></i>
+                        <div class="card-title">Acessos Externos</div>
+                        <div class="card-desc">Controle remoto com Ngrok / Firewalls.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="category">
+                <div class="category-title"><i class="fa-solid fa-server"></i> Dados, Manutenção e Build</div>
+                <div class="grid-cards">
+                    <div class="action-card" onclick="simCmd('BACKUP DE SEGURANCA (INSTANTE)', 'Realizando backup...\nFinalizado.', 'success', '7')">
+                        <i class="fa-solid fa-cloud-arrow-up card-icon"></i>
+                        <div class="card-title">Backup Seguro</div>
+                        <div class="card-desc">Copiar bancos da pasta DATABASE/*.db</div>
+                    </div>
+                    
+                    <div class="action-card warning" onclick="simCmd('LIMPAR TODAS AS DEPENDENCIAS', 'Apagando cache e builds...\nSistema limpo.', 'warn', '14')">
+                        <i class="fa-solid fa-broom card-icon"></i>
+                        <div class="card-title">Limpeza Profunda</div>
+                        <div class="card-desc">Exclui venv, node_modules. Deixa limpo.</div>
+                    </div>
+
+                    <div class="action-card" onclick="simCmd('REPARAR AMBIENTE (VENV)', 'Instalando pip install -r requirements.txt...\nOK.', 'success', '12')">
+                        <i class="fa-solid fa-screwdriver-wrench card-icon"></i>
+                        <div class="card-title">Reparar Ambiente</div>
+                        <div class="card-desc">Reinstala dependências do Python.</div>
+                    </div>
+
+                    <div class="action-card" onclick="simCmd('COMPILAR PARA EXECUTAVEL (.EXE)', 'Compilando .exe...\nFinalizado.', 'success', '11')">
+                        <i class="fa-solid fa-box-open card-icon"></i>
+                        <div class="card-title">Compilar p/ .EXE</div>
+                        <div class="card-desc">PyInstaller build bundle unificado.</div>
+                    </div>
+
+                    <div class="action-card" onclick="simCmd('CONFIGURAR ACESSO ONLINE (NGROK)', 'Validando Authtoken...', 'info', '10')">
+                        <i class="fa-solid fa-earth-americas card-icon"></i>
+                        <div class="card-title">Tunelamento Online</div>
+                        <div class="card-desc">Autenticar tunel Ngrok.</div>
+                    </div>
+
+                    <div class="action-card" onclick="simCmd('TESTAR INTEGRIDADE DO SISTEMA', 'Checando ambiente... Tudo OK.', 'success', '13')">
+                        <i class="fa-solid fa-notes-medical card-icon"></i>
+                        <div class="card-title">Testar Integridade</div>
+                        <div class="card-desc">Verificação de integridade nos módulos ativos.</div>
+                    </div>
+                </div>
+            <section class="category" id="saas-section">
+                <div class="category-title"><i class="fa-solid fa-cloud"></i> Gestão SaaS (Multi-Tenant)</div>
+                <div class="grid-cards">
+                    <div class="action-card highlight" onclick="fetch('http://localhost:8089/api/saas/stats').then(r=>r.json()).then(d=>simCmd('STATUS SAAS', JSON.stringify(d, null, 2), 'info'))">
+                        <i class="fa-solid fa-chart-pie card-icon"></i>
+                        <div class="card-title">Status Global SaaS</div>
+                        <div class="card-desc">Verifica o número de tenants ativos, MRR e saúde do PostgreSQL.</div>
+                    </div>
+                    
+                    <div class="action-card success" onclick="simCmd('ADM SAAS', 'Abrindo Painel Administrativo SaaS...', 'success', '3')">
+                        <i class="fa-solid fa-server card-icon"></i>
+                        <div class="card-title">Gerenciar SaaS</div>
+                        <div class="card-desc">Acesso total à gestão de empresas e schemas no banco central.</div>
+                    </div>
+
+                    <div class="action-card" onclick="fetch('http://localhost:8089/api/saas/testar-pg').then(r=>r.json()).then(d=>simCmd('TESTE PG', d.mensagem, d.conectado ? 'success' : 'error'))">
+                        <i class="fa-solid fa-database card-icon"></i>
+                        <div class="card-title">Testar PostgreSQL</div>
+                        <div class="card-desc">Verifica se o backend consegue comunicar com o banco de dados.</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="sidebar">
+            <div class="console-container">
+                <div class="console-header">
+                    <div class="mac-btn close"></div>
+                    <div class="mac-btn min"></div>
+                    <div class="mac-btn max"></div>
+                    <div class="console-title">API_SHELL - http://localhost:8089</div>
+                </div>
+                <div class="console-body" id="console-body">
+                    <div class="log-line info">JUVIKS GUI API Connectado.</div>
+                    <div class="log-line info">Selecione uma operacao para executar no backend...</div>
+                    <span class="blinking-cursor" id="cursor"></span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2026 JUVIKS Hero Corporation. Todos os direitos reservados.<br>
+        <span style="opacity:0.5; font-size:0.7rem;">Dashboard UI comunicando-se via REST API Server.</span>
+    </footer>
+
+    <script>
+        const consoleBody = document.getElementById('console-body');
+        
+        function simCmd(commandName, outputText, outputType = 'info', opcao = null) {
+            // Remove old cursor
+            const oldCursor = document.getElementById('cursor');
+            if(oldCursor) oldCursor.remove();
+            
+            // Add command execution log
+            const cmdEl = document.createElement('div');
+            cmdEl.className = 'log-line cmd';
+            cmdEl.innerHTML = `<span style="color:#ffbd2e">C:\\JUVIKS></span> PAINEL DE CONTROLE.bat ${opcao ? opcao : ''} (${commandName})`;
+            consoleBody.appendChild(cmdEl);
+            
+            let cursor = document.createElement('span');
+            cursor.className = 'blinking-cursor';
+            cursor.id = 'cursor';
+            consoleBody.appendChild(cursor);
+            
+            // Exibir simulacao visual rapida...
+            setTimeout(() => {
+                const lines = outputText.split('\n');
+                cursor.remove();
+                
+                lines.forEach((line, index) => {
+                    setTimeout(() => {
+                        const logEl = document.createElement('div');
+                        logEl.className = `log-line ${outputType}`;
+                        
+                        let prefix = '[-] ';
+                        if(outputType === 'error') prefix = '[ERRO] ';
+                        if(outputType === 'warn') prefix = '[!] ';
+                        if(outputType === 'success') prefix = '[OK] ';
+                        
+                        logEl.innerText = `${prefix}${line}`;
+                        consoleBody.appendChild(logEl);
+                        consoleBody.scrollTop = consoleBody.scrollHeight;
+                        
+                        if (index === lines.length - 1) {
+                            cursor = document.createElement('span');
+                            cursor.className = 'blinking-cursor';
+                            cursor.id = 'cursor';
+                            consoleBody.appendChild(cursor);
+                            consoleBody.scrollTop = consoleBody.scrollHeight;
+                        }
+                    }, index * 200); 
+                });
+
+            }, 300); 
+
+            // DISPARAR O SERVIDOR BACKEND (.BAT REAL) !
+            if (opcao) {
+                fetch('http://localhost:8089/api/comando', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ opcao: opcao })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Backend response:', data);
+
+                    // Se carregou um painel Streamlit Headless no background, vamos engatilhar a porta no navegador
+                    if (opcao === '3') setTimeout(() => window.open('http://localhost:8501', '_blank'), 4000);
+                    if (opcao === '5') setTimeout(() => window.open('http://localhost:8502', '_blank'), 4000);
+                    if (opcao === '6') setTimeout(() => window.open('http://localhost:8503', '_blank'), 4000);
+                })
+                .catch(err => {
+                    setTimeout(() => {
+                        cursor.remove();
+                        const errLog = document.createElement('div');
+                        errLog.className = 'log-line error';
+                        errLog.innerText = '[CRITICAL] Nao foi possivel conectar a API em http://localhost:8089 (painel_server.py esta rodando?)';
+                        consoleBody.appendChild(errLog);
+                        
+                        cursor = document.createElement('span');
+                        cursor.className = 'blinking-cursor';
+                        cursor.id = 'cursor';
+                        consoleBody.appendChild(cursor);
+                        consoleBody.scrollTop = consoleBody.scrollHeight;
+                    }, outputText.split('\n').length * 200 + 400); 
+                });
+            }
+        }
+    </script>
+</body>
+</html>

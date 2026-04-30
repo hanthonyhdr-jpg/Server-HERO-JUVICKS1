@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Financeiro Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #05050a;
+            --card-bg: rgba(20, 20, 40, 0.6);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-blue: #00f0ff;
+            --accent-green: #00ff88;
+            --accent-red: #ff2a5f;
+            --text-main: #ffffff;
+            --text-muted: #8b8b99;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: transparent;
+            color: var(--text-main);
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .card-faturamento::before {
+            background: linear-gradient(90deg, #3b82f6, var(--accent-blue));
+        }
+
+        .card-receita::before {
+            background: linear-gradient(90deg, #10b981, var(--accent-green));
+        }
+
+        .card-custos::before {
+            background: linear-gradient(90deg, #f43f5e, var(--accent-red));
+        }
+
+        .metric-card:hover.card-faturamento { border-color: rgba(0, 240, 255, 0.3); box-shadow: 0 10px 30px rgba(0, 240, 255, 0.1); }
+        .metric-card:hover.card-receita { border-color: rgba(0, 255, 136, 0.3); box-shadow: 0 10px 30px rgba(0, 255, 136, 0.1); }
+        .metric-card:hover.card-custos { border-color: rgba(255, 42, 95, 0.3); box-shadow: 0 10px 30px rgba(255, 42, 95, 0.1); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .icon-box {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .faturamento-icon { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .receita-icon { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .custos-icon { background: rgba(244, 63, 94, 0.15); color: var(--accent-red); }
+
+        .card-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 10px 0;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .currency {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .card-footer {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trend-up { color: var(--accent-green); }
+        .trend-down { color: var(--accent-red); }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <!-- FATURAMENTO -->
+        <div class="metric-card card-faturamento">
+            <div class="card-header">
+                <div class="card-title">Faturamento Global</div>
+                <div class="icon-box faturamento-icon"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+            <div class="card-value">
+                <span class="currency">R$</span> {{FATURAMENTO}}
+            </div>
+            <div class="card-footer">
+                <span class="trend-up"><i class="fa-solid fa-arrow-trend-up"></i> Receita Bruta</span> Orçamentos Aprovados
+            </div>
+        </div>
+
+        <!-- RECEITA LÍQUIDA -->
+        <div class="metric-card card-receita">
+            <div class="card-header">
+                <div class="card-title">Receita Total Paga</div>
+                <div class="icon-box receita-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+            </div>
+            <div class="card-value">
+                <span class="currency">R$</span> {{RECEITA_LIQUIDA}}
+            </div>
+            <div class="card-footer">
+                <span class="trend-up"><i class="fa-solid fa-check-circle"></i> Consolidado</span> Valor efetivamente recebido
+            </div>
+        </div>
+
+        <!-- CUSTOS -->
+        <div class="metric-card card-custos">
+            <div class="card-header">
+                <div class="card-title">Custos e Gastos</div>
+                <div class="icon-box custos-icon"><i class="fa-solid fa-wallet"></i></div>
+            </div>
+            <div class="card-value">
+                <span class="currency">R$</span> {{CUSTOS}}
+            </div>
+            <div class="card-footer">
+                <span class="trend-down"><i class="fa-solid fa-arrow-trend-down"></i> Relativo à Produção</span> Abatimento projetado
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento #{{ orc['id'] }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00ff88;
+            --bg-dark: #1a1a2e;
+            --bg-card: #16213e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: var(--bg-dark); 
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container { 
+            width: 100%; 
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header { 
+            background: var(--bg-card); 
+            padding: 30px 20px; 
+            border-radius: 20px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .header h1 { font-size: 1.2rem; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+        .header .cliente { font-size: 1.5rem; margin: 10px 0; font-weight: bold; }
+        .header .valor { font-size: 2.5rem; color: var(--primary); font-weight: 900; }
+        
+        .btn-main {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            color: #1a1a2e;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 800;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .btn-main:hover { transform: scale(1.05); }
+
+        .viewer-container {
+            background: #333;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            height: 700px;
+            position: relative;
+        }
+        
+        iframe.pdf-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .fallback-msg {
+            padding: 40px;
+            text-align: center;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .viewer-container { height: 500px; }
+            .header .valor { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Orçamento #{{ orc['id'] }}</h1>
+            <div class="cliente">{{ orc['cliente_nome'] }}</div>
+            <div class="valor">R$ {{ "%.2f"|format(orc['valor_total'] or 0) }}</div>
+            
+            <a href="{{ host_url }}/static/orc/{{ orc['filename'] }}" download class="btn-main">
+                <i class="fas fa-file-pdf"></i> BAIXAR ORÇAMENTO PDF
+            </a>
+        </div>
+
+        <div class="viewer-container">
+            {% if pdf_base64 %}
+            <!-- PDF embutido em base64 — sem segunda requisição ao Ngrok -->
+            <iframe src="data:application/pdf;base64,{{ pdf_base64 }}" class="pdf-frame"></iframe>
+            {% else %}
+            <div class="fallback-msg" style="margin-top:80px;">
+                <p><i class="fas fa-exclamation-triangle" style="color:#fbbf24;"></i> PDF não encontrado no servidor.</p>
+                <p>Use o botão acima para baixar o arquivo.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="fallback-msg">
+            <p><i class="fas fa-info-circle"></i> Não está conseguindo visualizar acima? </p>
+            <p>Clique no botão verde no topo para baixar e abrir o arquivo diretamente em seu aparelho.</p>
+        </div>
+
+        <div style="text-align: center; padding: 40px; color: #555; font-size: 0.8rem;">
+            Sistema de Orçamentos Juvix &copy; 2026
+        </div>
+    </div>
+    
+    <script>
+        // Marcar como visto
+        fetch('/api/marcar_visto/{{ orc["id"] }}', { method: 'POST' }).catch(e => console.log(e));
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+[server]
+runOnSave = true
+headless = true
+
+[client]
+showSidebarNavigation = false
+toolbarMode = "minimal"

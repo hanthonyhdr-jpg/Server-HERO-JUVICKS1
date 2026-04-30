@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASSINA HD | SISTEMA DE ASSINATURA 1.0</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Lateral Sidebar -->
+    <aside class="sidebar">
+        <a href="?tab=envio" class="nav-item {% if active_tab == 'envio' %}active{% endif %}">ENVIO DE ARQUIVOS</a>
+        <a href="?tab=fila" class="nav-item {% if active_tab == 'fila' %}active{% endif %}">FILA DE ASSINATURA</a>
+        <a href="?tab=backup" class="nav-item {% if active_tab == 'backup' %}active{% endif %}">BACKUP</a>
+        <a href="?tab=config" class="nav-item {% if active_tab == 'config' %}active{% endif %}">CONFIGURAÇÃO</a>
+
+        <a href="{{ url_for('logout') }}" class="logout-btn">SAIR DO SISTEMA</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>ASSINA HD</h1>
+            <p>SISTEMA DE ASSINATURA 1.0</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="glass-card"
+            style="border-left: 5px solid {% if category == 'success' %}var(--success){% else %}var(--danger){% endif %}; padding: 1rem; margin-bottom: 2rem; color: white;">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- TAB: ENVIO DE ARQUIVOS -->
+        {% if active_tab == 'envio' %}
+        <div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+            <h2 style="margin-bottom: 2rem;">Novo Documento</h2>
+            <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Arquivo
+                            PDF</label>
+                        <input type="file" name="document" id="pdfInput" accept=".pdf" class="input-field" required
+                            onchange="updatePreview()">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">WhatsApp do
+                            Cliente</label>
+                        <input type="text" name="whatsapp" placeholder="Ex: 5511999999999" class="input-field" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; margin-top: 2rem; padding: 1rem;">Gerar Link e Preparar Envio</button>
+            </form>
+
+            <h3 style="margin-top: 3rem; text-align: center; color: var(--primary); font-size: 2rem; font-weight: 800;">
+                PRÉVIA DO PDF</h3>
+            <div class="preview-box">
+                <iframe id="pdfPreview" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
+                <div id="noPreview"
+                    style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                    Nenhum arquivo selecionado</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- TAB: FILA DE ASSINATURA -->
+        {% if active_tab == 'fila' or active_tab == 'concluido' or active_tab == 'recusado' %}
+        <div class="search-box">
+            <h2 style="color: var(--primary); font-size: 2.5rem; font-weight: 800;">LOCALIZAR</h2>
+            <form action="" method="get" style="flex: 1; display:flex;">
+                <input type="hidden" name="tab" value="{{ active_tab }}">
+                <input type="text" name="search" class="search-input" value="{{ search }}"
+                    placeholder="PESQUISE PELO CONTRATO">
+            </form>
+        </div>
+
+        <div class="data-table">
+            <!-- FILA DE ASSINATURA Column -->
+            <div class="glass-card" style="padding: 1rem;">
+                <h3 style="text-align: center; margin-bottom: 2rem;">FILA DE ASSINATURA</h3>
+                {% for doc in documents if doc.status in ['pending', 'client_signed'] %}
+                <div class="doc-card" style="margin-bottom: 1rem;">
+                    <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span class="doc-status status-{{ 'signed' if doc.status == 'client_signed' else 'pending' }}">
+                            {{ 'ASSINADO PELO CLIENTE' if doc.status == 'client_signed' else 'AGUARDANDO' }}
+                        </span>
+                        <form action="{{ url_for('action_delete', doc_id=doc.id) }}" method="post"
+                            onsubmit="return confirm('Apagar?')">
+                            <button type="submit"
+                                style="background:none; border:none; color:var(--danger); font-size: 0.7rem; font-weight: 800; cursor:pointer;">Apagar</button>
+                        </form>
+                    </div>
+                    <strong style="display:block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{
+                        doc.original_filename }}</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">WhatsApp: {{
+                        doc.whatsapp_number }}</div>
+
+                    {% if doc.status == 'client_signed' %}
+                    <div
+                        style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); border-radius: 0.5rem; padding: 0.75rem; text-align: center;">
+                        <p style="font-size: 0.7rem; color: var(--success); margin-bottom: 0.5rem;">✓ Cliente já
+                            assinou! Agora falta a sua validação final.</p>
+                        <button class="btn btn-success" style="width: 100%; padding: 0.4rem; font-size: 0.7rem;"
+                            onclick="openAdminSign('{{ doc.id }}')">
+                            VALIDAR E ASSINAR MINHA PARTE
+                        </button>
+                    </div>
+                    {% else %}
+                    <a href="https://api.whatsapp.com/send?phone={{ doc.whatsapp_number }}&text=Assine:%20{{ host_url }}sign/{{ doc.id }}"
+                        target="_blank" class="btn btn-primary"
+                        style="width:100%; font-size: 0.7rem; padding: 0.4rem;">ENVIAR LINK</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- CONCLUIDO Column -->
+            <div class="glass-card" style="padding: 1rem; border-color: var(--success);">
+                <h3 style="text-align: center; margin-bottom: 2rem;">CONCLUÍDO</h3>
+                {% for doc in documents if doc.status == 'completed' %}
+                <div class="doc-card" style="margin-bottom: 1rem; border-color: var(--success);">
+                    <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span class="doc-status status-signed">VÁLIDO E COMPLETO</span>
+                        <form action="{{ url_for('action_delete', doc_id=doc.id) }}" method="post"
+                            onsubmit="return confirm('Apagar?')">
+                            <button type="submit"
+                                style="background:none; border:none; color:var(--danger); font-size: 0.7rem; font-weight: 800; cursor:pointer;">Apagar</button>
+                        </form>
+                    </div>
+                    <strong>{{ doc.original_filename }}</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">WhatsApp: {{
+                        doc.whatsapp_number }}</div>
+                    <a href="{{ url_for('download_pdf', doc_id=doc.id) }}" class="btn btn-outline"
+                        style="width:100%; font-size: 0.8rem; padding: 0.5rem; border: 1px solid #444;"
+                        target="_blank">Ver PDF Finalizado</a>
+                    <p style="font-size: 0.6rem; color: var(--text-muted); text-align: center; margin-top: 0.5rem;">
+                        Documento válido e assinado bilateralmente.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- RECUSADO Column -->
+            <div class="glass-card" style="padding: 1rem; border-color: var(--danger);">
+                <h3 style="text-align: center; margin-bottom: 2rem;">RECUSADO</h3>
+                {% for doc in documents if doc.status == 'rejected' %}
+                <div class="doc-card" style="margin-bottom: 1rem; border-color: var(--danger);">
+                    <div style="display:flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span class="doc-status"
+                            style="background: rgba(239, 68, 68, 0.2); color: var(--danger);">RECUSADO</span>
+                        <form action="{{ url_for('action_delete', doc_id=doc.id) }}" method="post"
+                            onsubmit="return confirm('Apagar?')">
+                            <button type="submit"
+                                style="background:none; border:none; color:var(--danger); font-size: 0.7rem; font-weight: 800; cursor:pointer;">Apagar</button>
+                        </form>
+                    </div>
+                    <strong>{{ doc.original_filename }}</strong>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">WhatsApp: {{
+                        doc.whatsapp_number }}</div>
+                    <div
+                        style="background: var(--danger); color: white; padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-weight: 900; font-size: 1.2rem;">
+                        RECUSADO</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- TAB: BACKUP -->
+        {% if active_tab == 'backup' %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+            <!-- Excel Section (Existing) -->
+            <div class="glass-card">
+                <h2 style="text-align: center; margin-bottom: 2rem;">Dados & Backup</h2>
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                    <a href="{{ url_for('export_data') }}" class="btn btn-outline"
+                        style="width:100%; padding: 1.5rem; border: 1px solid #444; font-size: 1.5rem;">Exportar para
+                        Excel (.xlsx)</a>
+                    <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom:0.5rem;">Importar do Excel:
+                        </p>
+                        <form action="{{ url_for('import_data') }}" method="post" enctype="multipart/form-data"
+                            style="display:flex; gap: 1rem;">
+                            <input type="file" name="file" accept=".xlsx"
+                                style="background: white; color: black; padding: 0.2rem; flex: 1;">
+                            <button type="submit" class="btn btn-primary" style="background:#5e60ce;">OK</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .DB Section (New based on sketch) -->
+            <div class="glass-card" style="background: #27303f;">
+                <h2 style="text-align: center; margin-bottom: 2rem; text-transform: uppercase;">Fazer Backup em .DB</h2>
+                <div style="display: flex; flex-direction: column; gap: 2rem;">
+                    <a href="{{ url_for('export_db') }}" class="btn btn-big"
+                        style="background: #00ff00; color: black;">EXPORTAR</a>
+
+                    <form action="{{ url_for('import_db') }}" method="post" enctype="multipart/form-data">
+                        <input type="file" name="file" accept=".db" id="dbFileInput" style="display:none;"
+                            onchange="this.form.submit()">
+                        <button type="button" class="btn btn-big" style="background: #00ff00; color: black;"
+                            onclick="document.getElementById('dbFileInput').click()">IMPORTAR</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- TAB: CONFIG -->
+        {% if active_tab == 'config' %}
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 2rem;">
+            <!-- Form: Adicionar Usuario -->
+            <div class="glass-card">
+                <h2 style="margin-bottom: 2rem;">Novo Usuário</h2>
+                <form action="{{ url_for('add_user') }}" method="post">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Nome de
+                            Usuário</label>
+                        <input type="text" name="username" class="input-field" required placeholder="Ex: joao_silova">
+                    </div>
+                    <div style="margin-bottom: 1.5rem; position: relative;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Senha</label>
+                        <input type="password" name="password" id="newPass" class="input-field" required
+                            placeholder="Digite a senha">
+                        <button type="button" onclick="togglePass('newPass')"
+                            style="position: absolute; right: 10px; bottom: 8px; background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.7rem; font-weight: 800;">VER</button>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%;">CRIAR ACESSO</button>
+                </form>
+            </div>
+
+            <!-- List: Usuarios Atuais -->
+            <div class="glass-card">
+                <h2 style="margin-bottom: 2rem;">Usuários do Sistema</h2>
+                <div style="border: 1px solid var(--border); border-radius: 0.5rem; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead style="background: rgba(255,255,255,0.05);">
+                            <tr>
+                                <th style="text-align: left; padding: 1rem; border-bottom: 1px solid var(--border);">
+                                    Usuário</th>
+                                <th style="text-align: left; padding: 1rem; border-bottom: 1px solid var(--border);">
+                                    Cargo</th>
+                                <th style="text-align: center; padding: 1rem; border-bottom: 1px solid var(--border);">
+                                    Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td style="padding: 1rem; border-bottom: 1px solid var(--border);">{{ u.username }}</td>
+                                <td
+                                    style="padding: 1rem; border-bottom: 1px solid var(--border); color: var(--text-muted);">
+                                    {{ u.role }}</td>
+                                <td style="padding: 1rem; border-bottom: 1px solid var(--border); text-align: center;">
+                                    {% if u.username != 'admin' %}
+                                    <form action="{{ url_for('delete_user', username=u.username) }}" method="post"
+                                        onsubmit="return confirm('Apagar este usuario?')">
+                                        <button type="submit"
+                                            style="background: none; border: none; color: var(--danger); cursor: pointer; font-weight: 800; font-size: 0.7rem;">REMOVER</button>
+                                    </form>
+                                    {% else %}
+                                    <span
+                                        style="font-size: 0.6rem; color: var(--text-muted); font-weight: 800;">FIXO</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script>
+            function togglePass(id) {
+                const x = document.getElementById(id);
+                if (x.type === "password") { x.type = "text"; }
+                else { x.type = "password"; }
+            }
+        </script>
+        {% endif %}
+
+    </main>
+
+    <!-- ADMIN SIGN MODAL -->
+    <div id="adminSignModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000;">
+        <div class="glass-card" style="width: 90%; max-width: 500px;">
+            <h2 style="text-align: center; margin-bottom: 1.5rem;">Sua Assinatura (Empresa)</h2>
+            <p style="font-size: 0.8rem; text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Desenhe
+                sua assinatura ou suba uma imagem do selo.</p>
+
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <button class="btn btn-outline" onclick="switchAdminMethod('draw')" id="btnAdminDraw"
+                    style="flex:1; padding: 0.5rem; font-size: 0.8rem; background: var(--primary);">Desenhar</button>
+                <button class="btn btn-outline" onclick="switchAdminMethod('upload')" id="btnAdminUpload"
+                    style="flex:1; padding: 0.5rem; font-size: 0.8rem;">Subir Selo</button>
+            </div>
+
+            <div id="adminDrawArea"
+                style="background: white; border-radius: 0.5rem; height: 150px; position: relative;">
+                <canvas id="adminCanvas" style="width: 100%; height: 100%; cursor: crosshair;"></canvas>
+                <button onclick="clearAdminCanvas()"
+                    style="position: absolute; bottom: 5px; right: 5px; font-size: 0.7rem; color: black; background: #eee; border: 1px solid #ccc; padding: 2px 5px;">LIMPAR</button>
+            </div>
+
+            <div id="adminUploadArea"
+                style="display: none; background: #111827; padding: 1rem; border-radius: 0.5rem; border: 1px dashed #333; text-align: center;">
+                <input type="file" id="adminFile" accept="image/*" class="input-field" onchange="previewAdminFile()">
+                <img id="adminPreview"
+                    style="display: none; max-height: 100px; margin-top: 1rem; border: 1px solid #555;">
+            </div>
+
+            <div style="display:flex; gap: 1rem; margin-top: 2rem;">
+                <button class="btn btn-success" style="flex: 2;" onclick="submitAdminSignature()">FINALIZAR
+                    DOCUMENTO</button>
+                <button class="btn btn-outline" style="flex: 1; border: 1px solid #444;"
+                    onclick="closeAdminSign()">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Footer Indicator -->
+    <div class="status-indicator">
+        <p>STATUS</p>
+        <div style="display: flex; align-items: center; justify-content: flex-end;">
+            <span class="dot dot-online"></span> <span style="font-weight: 700; color: #22c55e;">ONLINE</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; opacity: 0.5;">
+            <span class="dot dot-offline"></span> <span style="font-weight: 700;">OFFLINE</span>
+        </div>
+    </div>
+
+    <script>
+        function updatePreview() {
+            const input = document.getElementById('pdfInput');
+            const preview = document.getElementById('pdfPreview');
+            const noPrev = document.getElementById('noPreview');
+            if (input.files[0]) {
+                const url = URL.createObjectURL(input.files[0]);
+                preview.src = url;
+                preview.style.display = 'block';
+                noPrev.style.display = 'none';
+            }
+        }
+
+        // ADMIN SIGNING LOGIC
+        let currentDocId = null;
+        const aCanvas = document.getElementById('adminCanvas');
+        const aCtx = aCanvas.getContext('2d');
+        let aDrawing = false;
+        let adminMethod = 'draw';
+        let adminBase64 = null;
+
+        function openAdminSign(id) {
+            currentDocId = id;
+            document.getElementById('adminSignModal').style.display = 'flex';
+            aCanvas.width = aCanvas.offsetWidth;
+            aCanvas.height = aCanvas.offsetHeight;
+            aCtx.strokeStyle = "#000";
+            aCtx.lineWidth = 2;
+        }
+
+        function closeAdminSign() { document.getElementById('adminSignModal').style.display = 'none'; }
+
+        aCanvas.onmousedown = () => { aDrawing = true; aCtx.beginPath(); };
+        aCanvas.onmousemove = (e) => { if (!aDrawing) return; aCtx.lineTo(e.offsetX, e.offsetY); aCtx.stroke(); };
+        aCanvas.onmouseup = () => { aDrawing = false; };
+        function clearAdminCanvas() { aCtx.clearRect(0, 0, aCanvas.width, aCanvas.height); }
+
+        function switchAdminMethod(m) {
+            adminMethod = m;
+            document.getElementById('adminDrawArea').style.display = m === 'draw' ? 'block' : 'none';
+            document.getElementById('adminUploadArea').style.display = m === 'upload' ? 'block' : 'none';
+            document.getElementById('btnAdminDraw').style.background = m === 'draw' ? 'var(--primary)' : 'transparent';
+            document.getElementById('btnAdminUpload').style.background = m === 'upload' ? 'var(--primary)' : 'transparent';
+        }
+
+        function previewAdminFile() {
+            const file = document.getElementById('adminFile').files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                adminBase64 = reader.result;
+                document.getElementById('adminPreview').src = reader.result;
+                document.getElementById('adminPreview').style.display = 'block';
+            };
+            if (file) reader.readAsDataURL(file);
+        }
+
+        async function submitAdminSignature() {
+            let vis = (adminMethod === 'draw') ? aCanvas.toDataURL() : adminBase64;
+            if (!vis) { alert("Assine ou suba uma imagem."); return; }
+
+            const res = await fetch(`/action/sign_admin/${currentDocId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visual_signature: vis })
+            });
+            const dat = await res.json();
+            if (dat.success) window.location.href = "?tab=concluido";
+            else alert("Erro: " + dat.message);
+        }
+    </script>
+</body>
+
+</html>
